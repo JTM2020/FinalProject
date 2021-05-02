@@ -79,7 +79,7 @@ else
 end
    message = sprintf('Number %s on the %s team had %d at bats, %d hits, a batting average of %.3f, an OBP of %.3f, a SLG of %.3f, and an OPS of %.3f ', number.String, baseball.homeAway, baseball.atbats, baseball.hits, baseball.battingAverage, baseball.onbasepercentage, baseball.slg, baseball.ops);
     uiwait(msgbox(message)); %messagebox the is created to shows the players number, team, batting average, OBP, SLG, and OPS
-   % writematrix([baseball.playernumber,baseball.atbats,baseball.hits,baseball.battingAverage,baseball.onbasepercentage,baseball.slg,baseball.ops],'baseball.csv'); %Writes a csv for the players stats so they can be tracked
+    writematrix([baseball.playernumber,baseball.atbats,baseball.hits,baseball.battingAverage,baseball.onbasepercentage,baseball.slg,baseball.ops],'baseball.csv'); %Writes a csv for the players stats so they can be tracked
 end
 
 function[] = home(~,~) %callback function that changes baseball.homeAway to 'home'
