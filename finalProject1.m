@@ -10,22 +10,22 @@ baseball.homerun = 0; %These values will be my intial values for the baseball st
 baseball.hits = 0;
 baseball.walks = 0;
 baseball.hbpwalks = 0;
-baseball.onbasePercentage = 0.000;
+baseball.onbasepercentage = 0.000;
 baseball.slg = 0;
 baseball.ops = 0;
-baseball.homeAway = 'Error';
+baseball.homeAway = 'home';
 
 
 baseball.fig = figure('color','[0 0.4470 0.7410]','numbertitle','off','name','Baseball Hitting Statistics'); %This creates the figure for my stat tracker
 
-baseball.playernumberSelector = uicontrol('style','edit','units','normalized','position',[.50 .007 .14 .05],'string','Input Player #','Tag','EditField'); %This edit box is where you can input your players number 
-baseball.playernumberDisplay = uicontrol('style','edit','units','normalized','position',[.50 .075 .09 .05],'string','0','horizontalalignment','right','Tag','EditField2','Enable','off'); %The second edit box that will just display the number inputted in the first edit box
-baseball.playernumberEnter = uicontrol('style','pushbutton','units','normalized','position',[.65 .075 .14 .05],'string','Enter','callback', {@playerNumber,baseball.playernumberSelector,baseball.playernumberDisplay}); % This is a master enter button that will display the number in the second edit box as well as displaying a message with the players stats previously inputted with the other buttons. It also creates a csv with the players stats
+baseball.playernumberSelector = uicontrol('style','edit','units','normalized','position',[.35 .057 .14 .05],'string','Input Player #','Tag','EditField'); %This edit box is where you can input your players number 
+baseball.playernumberDisplay = uicontrol('style','edit','units','normalized','position',[.38 .15 .09 .05],'string','0','horizontalalignment','right','Tag','EditField2','Enable','off'); %The second edit box that will just display the number inputted in the first edit box
+baseball.playernumberEnter = uicontrol('style','pushbutton','units','normalized','position',[.80 .105 .14 .05],'string','Enter','callback', {@playerNumber,baseball.playernumberSelector,baseball.playernumberDisplay}); % This is a master enter button that will display the number in the second edit box as well as displaying a message with the players stats previously inputted with the other buttons. It also creates a csv with the players stats
 
-baseball.teamSelector = uicontrol('style','radiobutton','units','normalized','position',[.80 .075 .14 .05],'string','Home','callback', {@home}); %button that switches the players team to home
-baseball.teamSelector2 = uicontrol('style','radiobutton','units','normalized','position',[.80 .015 .14 .05],'string','Away','callback', {@away}); %button that switches the players team to away
+baseball.teamSelector = uicontrol('style','radiobutton','units','normalized','position',[.60 .155 .14 .05],'string','Home','callback', {@home}); %button that switches the players team to home
+baseball.teamSelector2 = uicontrol('style','radiobutton','units','normalized','position',[.60 .055 .14 .05],'string','Away','callback', {@away}); %button that switches the players team to away
 
-baseball.atBats = uicontrol('style','pushbutton','units','normalized','position',[.034 .007 .14 .05],'string','At Bats','callback', {@addAB,1}); %push button that uses a callback function to adds at bats 
+baseball.atBats = uicontrol('style','pushbutton','units','normalized','position',[.034 .007 .14 .05],'string','Outs','callback', {@addAB,1}); %push button that uses a callback function to adds at bats 
 baseball.atBatsDisplay = uicontrol('style','text','units','normalized','position',[.50 .90 .09 .05],'string', num2str(baseball.atbats),'horizontalalignment','right','Tag','EditField'); %display that shows the number of times at bats is added
 baseball.atBatsText = uicontrol('style','text','units','normalized','position', [.37 .90 .10 .05],'string','At Bats','horizontalalignment','center'); %Text that is next to the display that shows at bats
 
@@ -57,32 +57,49 @@ baseball.opsDisplay = uicontrol('style','text','units','normalized','position',[
 baseball.opsText = uicontrol('style','text','units','normalized','position', [.37 .30 .10 .06],'string','On Base Plus SLG','horizontalalignment','center'); %Text that is next to the display that shows OPS
 
 baseball.resetButton = uicontrol('style','pushbutton','units','normalized','position',[.80 .640 .14 .05],'string','Reset','callback', {@resetButton}); %Button that resets all the values previously stated back to their initial value of zero
-baseball.closeButton = uicontrol('style','pushbutton','units','normalized','position',[.80 .50 .14 .05],'string','Close','callback', {@closeButton});
+baseball.closeButton = uicontrol('style','pushbutton','units','normalized','position',[.80 .50 .14 .05],'string','Close','callback', {@closeButton}); %button that closes program
+set(baseball.teamSelector, 'Value', 1); %Starts off by having home button pressed
 end
 function[] = playerNumber(source,event,number,display) %callback function to put in the player number
-global baseball; %global variable
+ calculateBattingAverage(source,event) %calls batting average function in case the user doesn't
+ calculateOPS(source,event); %calls OPS function in case user doesn't
 
+global baseball; %global variable
+if baseball.homeaway == 1 %checks if home or away ic clicked
     baseball.playernumber = str2num(number.String); %assigns the variable baseball.playernumber to the string inputed in the edit box
     display.String = num2str(baseball.playernumber);
+    if isempty(str2num(number.String))
+    set(baseball.playernumber,'string','0');%This if statement checks for numerical input for player number
+    warndlg('Input must be numerical');
+    return
+    end
+else
+    warndlg('Choose Home or Away')
+    return
+end
    message = sprintf('Number %s on the %s team had %d at bats, %d hits, a batting average of %.3f, an OBP of %.3f, a SLG of %.3f, and an OPS of %.3f ', number.String, baseball.homeAway, baseball.atbats, baseball.hits, baseball.battingAverage, baseball.onbasepercentage, baseball.slg, baseball.ops);
     uiwait(msgbox(message)); %messagebox the is created to shows the players number, team, batting average, OBP, SLG, and OPS
-    writematrix([baseball.playernumber,baseball.atbats,baseball.hits,baseball.battingAverage,baseball.onbasepercentage,baseball.slg,baseball.ops],'baseball.csv'); %Writes a csv for the players stats so they can be tracked
+   % writematrix([baseball.playernumber,baseball.atbats,baseball.hits,baseball.battingAverage,baseball.onbasepercentage,baseball.slg,baseball.ops],'baseball.csv'); %Writes a csv for the players stats so they can be tracked
 end
 
 function[] = home(~,~) %callback function that changes baseball.homeAway to 'home'
 global baseball; %global variable
 baseball.homeAway = 'home';
+baseball.homeaway = 1;
+set(baseball.teamSelector2, 'Value', 0); %turns off away button if home button is pressed
 end
 
 function[] = away(~,~) %callback function that changes baseball.homeAway to 'away'
 global baseball; %global variable
 baseball.homeAway = 'away';
+baseball.homeaway = 1;
+set(baseball.teamSelector, 'Value', 0); %turns off home button if away button is pressed
 end
     
 
-function[] = addAB(source,event,atbats) %callback function that adds at bats 
+function[] = addAB(source,event,outs) %callback function that adds at bats 
 global baseball; %global variable
-baseball.atbats = baseball.atbats + atbats; %reassigns baseball.atbats by adding 1 every time the push button is pressed
+baseball.atbats = baseball.atbats + outs; %reassigns baseball.atbats by adding 1 every time the push button is pressed
 baseball.atBatsDisplay = uicontrol('style','text','units','normalized','position',[.50 .90 .09 .05],'string', num2str(baseball.atbats),'horizontalalignment','right','Tag','EditField'); %resets the display to show when an at bat is added
 end
 
@@ -90,13 +107,18 @@ function[] = addSingles(source,event,single) %callback function
 global baseball; %global variable
 baseball.single = baseball.single + single; %reassigns baseball.single by adding 1 every time the push button is pressed
 baseball.hits = baseball.single + baseball.double + baseball.triple + baseball.homerun; %reassigns hits every time a single, double, triple, or homerun is added
+baseball.atbats = baseball.atbats + 1; %adds an at bat every time there is a hit
 baseball.hitsDisplay = uicontrol('style','text','units','normalized','position',[.50 .80 .09 .05],'string', num2str(baseball.hits),'horizontalalignment','right','Tag','EditField2'); %resets the display to show when a hit is added
+baseball.atBatsDisplay = uicontrol('style','text','units','normalized','position',[.50 .90 .09 .05],'string', num2str(baseball.atbats),'horizontalalignment','right','Tag','EditField'); %resets the display to show when an at bat is added
+
 end
 
 function[] = addDoubles(source,event,double) %callback function
 global baseball; %global variable
 baseball.double = baseball.double + double; %reassigns baseball.double by adding 1 every time the push button is pressed
 baseball.hits = baseball.single + baseball.double + baseball.triple + baseball.homerun; %reassigns hits every time a single, double, triple, or homerun is added
+baseball.atbats = baseball.atbats + 1; %adds an at bat every time there is a hit
+baseball.atBatsDisplay = uicontrol('style','text','units','normalized','position',[.50 .90 .09 .05],'string', num2str(baseball.atbats),'horizontalalignment','right','Tag','EditField'); %resets the display to show when an at bat is added
 baseball.hitsDisplay = uicontrol('style','text','units','normalized','position',[.50 .80 .09 .05],'string', num2str(baseball.hits),'horizontalalignment','right','Tag','EditField2'); %resets the display to show when a hit is added
 end
 
@@ -104,6 +126,8 @@ function[] = addTriples(source,event,triple) %callback function
 global baseball; %global variable
 baseball.triple = baseball.triple + triple; %reassigns baseball.triple by adding 1 every time the push button is pressed
 baseball.hits = baseball.single + baseball.double + baseball.triple + baseball.homerun; %reassigns hits every time a single, double, triple, or homerun is added
+baseball.atbats = baseball.atbats + 1; %adds an at bat every time there is a hit
+baseball.atBatsDisplay = uicontrol('style','text','units','normalized','position',[.50 .90 .09 .05],'string', num2str(baseball.atbats),'horizontalalignment','right','Tag','EditField'); %resets the display to show when an at bat is added
 baseball.hitsDisplay = uicontrol('style','text','units','normalized','position',[.50 .80 .09 .05],'string', num2str(baseball.hits),'horizontalalignment','right','Tag','EditField2'); %resets the display to show when a hit is added
 end
 
@@ -111,6 +135,8 @@ function[] = addHomeRuns(source,event,homerun) %callback function
 global baseball; %global variable
 baseball.homerun = baseball.homerun + homerun; %reassigns baseball.homerun by adding 1 every time the push button is pressed
 baseball.hits = baseball.single + baseball.double + baseball.triple + baseball.homerun; %reassigns hits every time a single, double, triple, or homerun is added
+baseball.atbats = baseball.atbats + 1;%adds an at bat every time there is a hit
+baseball.atBatsDisplay = uicontrol('style','text','units','normalized','position',[.50 .90 .09 .05],'string', num2str(baseball.atbats),'horizontalalignment','right','Tag','EditField'); %resets the display to show when an at bat is added
 baseball.hitsDisplay = uicontrol('style','text','units','normalized','position',[.50 .80 .09 .05],'string', num2str(baseball.hits),'horizontalalignment','right','Tag','EditField2'); %resets the display to show when a hit is added
 end
 
@@ -123,6 +149,10 @@ end
 
 function[] = calculateBattingAverage(~,~) %callback function
 global baseball; %global variable
+if baseball.atbats == 0
+    baseball.battingAverage = 0; %if statement that will keep the value of batting average 0 instead of NaN when calculating 0/0
+    return
+end
 if baseball.atbats >= baseball.hits % if statement that checks if at bats is more than hits 
 baseball.battingAverage = baseball.hits/baseball.atbats; %calculation for batting average
 baseball.battingAverageDisplay = uicontrol('style','text','units','normalized','position',[.50 .60 .09 .05],'string', num2str(baseball.battingAverage),'horizontalalignment','right'); %resets the display to show when the batting average needs to be recalculated
@@ -133,6 +163,10 @@ end
 
 function[] = calculateOBP(~,~) %callback function
 global baseball; %global variable
+if baseball.atbats == 0 && baseball.hbpwalks == 0 %if statement that will keep the value of OBP 0 instead of NaN when calculating 0/0
+    baseball.onbasepercentage = 0;
+    return
+end
 if baseball.atbats >= baseball.hits % if statement that checks if at bats is more than hits 
 baseball.onbasepercentage = (baseball.hits + baseball.hbpwalks)/(baseball.atbats + baseball.hbpwalks); %calculation for OBP
 baseball.obpDisplay = uicontrol('style','text','units','normalized','position',[.50 .50 .09 .05],'string', num2str(baseball.onbasepercentage),'horizontalalignment','right'); %resets the display to show when the OBP needs to be recalculated
@@ -143,6 +177,10 @@ end
 
 function[] = calculateSLG(~,~) %callback function
 global baseball; %global variable
+if baseball.atbats == 0
+    baseball.slg = 0; %if statement that will keep the value of SLG 0 instead of NaN when calculating 0/0
+    return
+end
 if baseball.atbats >= baseball.hits % if statement that checks if at bats is more than hits 
 baseball.slg = (baseball.single + (2*baseball.double) + (3*baseball.triple) + (4*baseball.homerun))/baseball.atbats; %calculation for SLG
 baseball.slgDisplay = uicontrol('style','text','units','normalized','position',[.50 .40 .09 .05],'string', num2str(baseball.slg),'horizontalalignment','right'); %resets the display to show when the SLG needs to be recalculated
@@ -151,7 +189,9 @@ msgbox('Hits exceed at bats!','User Error','error','modal') %error message that 
 end
 end
 
-function[] = calculateOPS(~,~) %callback function
+function[] = calculateOPS(source,event) %callback function
+calculateSLG(source,event); %calls SLG in case user does not as SLG is needed to calculate OPS
+calculateOBP(source,event); %calls OBP in case user does not as SLG is needed to calculate OPS
 global baseball; %global variable
 if baseball.atbats >= baseball.hits % if statement that checks if at bats is more than hits 
 baseball.ops = baseball.onbasepercentage + baseball.slg; %calculation for OPS
@@ -172,14 +212,14 @@ baseball.homerun = 0; %reassign variables to 0
 baseball.hits = 0;
 baseball.walks = 0;
 baseball.hbpwalks = 0;
-baseball.onBasePercentage = 0;
+baseball.onbasepercentage = 0;
 baseball.slg = 0;
 baseball.ops = 0;
 baseball.atBatsDisplay = uicontrol('style','text','units','normalized','position',[.50 .90 .09 .05],'string', num2str(baseball.atbats),'horizontalalignment','right','Tag','EditField'); %to reassign variable displays to 0
 baseball.hitsDisplay = uicontrol('style','text','units','normalized','position',[.50 .80 .09 .05],'string', num2str(baseball.hits),'horizontalalignment','right','Tag','EditField2');
 baseball.hbpWalksDisplay = uicontrol('style','text','units','normalized','position',[.50 .70 .09 .05],'string', num2str(baseball.hbpwalks),'horizontalalignment','right');
 baseball.battingAverageDisplay = uicontrol('style','text','units','normalized','position',[.50 .60 .09 .05],'string', num2str(baseball.battingAverage),'horizontalalignment','right');
-baseball.obpDisplay = uicontrol('style','text','units','normalized','position',[.50 .50 .09 .05],'string', num2str(baseball.battingAverage),'horizontalalignment','right');
+baseball.obpDisplay = uicontrol('style','text','units','normalized','position',[.50 .50 .09 .05],'string', num2str(baseball.onbasepercentage),'horizontalalignment','right');
 baseball.slgDisplay = uicontrol('style','text','units','normalized','position',[.50 .40 .09 .05],'string', num2str(baseball.slg),'horizontalalignment','right');
 baseball.opsDisplay = uicontrol('style','text','units','normalized','position',[.50 .30 .09 .05],'string', num2str(baseball.ops),'horizontalalignment','right');
 end
